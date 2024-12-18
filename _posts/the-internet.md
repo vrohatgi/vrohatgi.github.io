@@ -1,0 +1,148 @@
+---
+title: The Internet
+subtitle: I try to explain the Internet in the simplest way I can. 
+layout: default
+date: 2024-12-17
+keywords: networking
+published: true
+---
+
+At Berkeley, one of the classes I was most excited to take was [CS 168](https://fa24.cs168.io/). Unfortunately, 
+this course was not offered during my senior year. I am auditing it now, and these are some key takeaways from the 
+Course Introduction!
+
+# The Internet and the web are not the same thing. 
+The Internet is simply the infrastructure that allows data to travel between computers across the world. 
+On the other hand, the web is a collection of applications built on top of the Internet. 
+An example of a web application is Wikipedia, which you can access via a web browser like Safari or Chrome.
+Other applications are also built on top of Internet infrastructure, like your Apple Watch (Internet of Things devices)
+and Steam games.
+
+# The Internet is federated and scalable.
+What does federated mean? There is no one Internet Service Provider (e.g. AWS, AT&T, etc.), or operator, that manages 
+the billions of users and trillions of services across the world. Each ISP operates independently, but an ISP must 
+cooperate with the shared Internet protocols. 
+
+Due to this decentralization, the Internet is highly scalable. Since ISPs operate independently, they can use a wide 
+range of technologies (e.g. electrical wires, optical fiber cables, etc.). Because of the billions of users and trillions
+of services, it's important that Internet protocols operate asynchronously. When a client sends a server a message, the 
+server can process the message at its own pace and respond when ready, without requiring the client to wait idly. The 
+client can continue with other tasks or send additional requests while waiting for a response.
+
+# RFCs define Internet protocols.
+A protocol specifies how applications can send and receive information over the Internet. It defines how the data should 
+be formatted, and what the response to specific messages should be. 
+
+The Internet Engineering Task Force (IETF) creates Request For Comments (RFC) documents. These documents define the 
+standardized Internet protocols. 
+
+# The Internet has 5 layers.
+## Layer 1: Physical
+We need to send data (bits) across space. We could accomplish that via wireless radio waves, light pulses across optical 
+fiber cables, or voltages on an electrical wire. 
+
+## Layer 2: Link
+Simply put, a link connects two machines using any kind of technology (wireless, optical fiber, etc.).
+Links that connect a bunch of computers that are close to one another create a Local Area Network (LAN).
+
+## Layer 3: Internet
+How do we connect a machine in one LAN to a machine in another LAN? We can add router(s), or switch(es) to each LAN. 
+We can create links between routers to connect multiple LANs together! Using this framework, we could connect everyone 
+in the world, and this is called the Internet.
+
+Packets are groups of bytes. In Layer 2, we send packets across links within an LAN. In Layer 3, we can use routers to 
+send packets anywhere in the Internet. The end hosts are the machines communicating over the Internet, and the routers
+only exist to help the end hosts communicate with each other. 
+
+Funnily enough, the Internet only supports best-effort delivery of data. When you send data over Layer 3, there is no 
+guarantee that the data will be delivered. You also won't know whether or not the delivery succeeded. The data, if large,
+will be sent as multiple packets, and each packet will be forwarded from the client to a router to (maybe) other routers,
+until it finally reaches the server.
+
+## Layer 4: Transport
+Layer 4 implements a protocol for resending lost packets, splitting data into packets, and reordering packets that 
+arrive out-of-order.
+
+## Layer 7: Application
+Why do we jump from Layer 4 to Layer 7? Layers 5 (Session) and 6 (Presentation), which were standardized in the 1970s, 
+are now obsolete. Layer 7 is all about implementing the services on top of the Internet infrastructure.
+
+# Headers help routers know where to forward packets.
+When an end host send a packet to a router, how does the router know where to send the packet? When we send a packet, 
+we need to attach additional metadata (i.e., a header) that tells the network infrastructure what to do with thd packet. 
+The rest of the bits (e.g. the file being sent), or the original message, is called the payload.
+
+Headers are standardized! They include information like the destination address for the data (required), the source 
+address of the data, a checksum, and the length of the packet.
+
+The lower 3 layers are implemented everywhere (end hosts and routers), but the top 2 layers are only implemented at the 
+end hosts.
+
+Let's say machine A wants to send a message to machine B. The message will be wrapped in a header by Layer 4, and then 
+on top of that, it will be wrapped in a header by Layer 3, then Layer 2, then Layer 1. Layer 1 will send the wrapped 
+packet over to the router. The router will unwrap the Layer 1 and 2 headers, and then use Layer 3 to determine where the
+packet should be sent next. The router will add a new Layer 2 header and a new Layer 1 header. Let's say the packet 
+should now be sent to machine B. Machine B will unwrap Layers 1, 2, 3, 4, and 7, and receive the message!
+
+If you draw it out, you'll notice that you can use a different protocol for each hop at Layers 2 and 1. Each router 
+parses Layers 1 through 3, while the end hosts parse Layers 1 through 7.
+
+# A Layer have multiple protocols, except for the "Narrow Waist."
+Yes! For instance, Layer 7 could use NTP or HTTP. Layer 4 could use UDP or TCP. Layer 2 could use the Ethernet or WiFi. 
+Layer 1 could use radio waves or copper wires. However, there is only one protocol allowed for Layer 3, and that is the 
+Internet Protocol (IP). This is the "Narrow Waist."
+
+Demultiplexing is the process of adding metadata to headers that provides information on which protocol or application 
+to use.
+
+# The Internet's design follows the end-to-end principle.
+The Internet implements best-effort delivery of packets across the routers. The end hosts then check whether the data
+was fully delivered or not. If instead we relied on the network to be correct, we can’t actually guarantee perfect 
+reliability if the routers are buggy (e.g. a router could report sending all packets successfully even if it dropped one).
+The end hosts would probably end up doing an end-to-end check anyway.
+
+This is the end-to-end principle in practice, which suggests certain functions, particularly those related to reliability
+and correctness, should be implemented at the endpoints of a system rather than within the network itself.
+
+# Network resources are statistically multiplexed.
+Links and routers on the Internet have finite capacity. Network resources are statistically multiplexed, meaning that 
+resources are dynamically allocated to users based on their demand, rather than partitioning a fixed share of resources 
+to each user. Thus, we can support the same users with less capacity (cheaper, more efficient use of resources)! For 
+many distributions, we can show that the peak of the aggregate is actually closer to the sum of the average demands, 
+which is much less than the sum of the peak demands.
+
+## Packet switching is the default statistical multiplexing approach in the Internet.
+In packet switching, each packet is sent independently across the network, potentially taking different paths to reach 
+the destination. Each router on the network routes packets based solely on their destination address without coordinating
+with other routers, ensuring flexible and efficient data transmission.
+
+In circuit switching (also a statistical multiplexing approach), on the other hand, a dedicated communication path is 
+established between the source and destination before any data is transmitted. This path reserves the necessary network 
+resources at each router along the way, ensuring a continuous and reliable connection for the duration of the data transfer.
+
+Circuit switching gives the application better performance with reserved bandwidth. It also gives the developer 
+more predictable behavior. However, packet switching gives us more efficient sharing of bandwidth (especially when the 
+traffic is bursty), and avoids startup time. It also gives us easier recovery from failure, and is generally simpler to 
+implement (less for routers to do).
+
+# How do you measure the performance of a link?
+Bandwidth, propagation delay, and bandwidth-delay product (BDP) are key properties of a link, affecting how data is 
+transmitted across it. Bandwidth is the data capacity per unit time, propagation delay is the time a bit takes to 
+traverse the link, and BDP represents the data capacity at a given time.
+
+The total packet delay includes transmission delay (time to put bits on the wire) and propagation delay, with queuing 
+delay added if packets are buffered due to link congestion.
+
+Choosing between links with different bandwidths and propagation delays depends on the packet size and type of data 
+being sent. For small packets, propagation delay is often more critical, while for large packets, bandwidth becomes more 
+important.
+
+Transient overload occurs when packets arrive at a router faster than they can be sent out, but only for a brief period.
+Persistent overload happens when the incoming traffic consistently exceeds the capacity of the outgoing link.
+Transient overloads at routers are common and managed with queues, while persistent overloads may lead to packet loss, 
+requiring proper network provisioning and congestion control strategies.
+
+
+
+
+
